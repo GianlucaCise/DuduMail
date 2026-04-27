@@ -204,4 +204,8 @@ pip-selfcheck.json
 .history
 .ionide
 
+
+### emails.db ###
+emails.db
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,venv,python
