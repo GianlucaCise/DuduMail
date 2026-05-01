@@ -39,7 +39,7 @@ def send_email():
 
     return redirect(url_for('index'))
 
-
+@app.route('/')
 def index():
     lista_email = get_emails()
     return render_template('index.html', emails=lista_email)
