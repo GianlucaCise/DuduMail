@@ -1,9 +1,36 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session # aggiungi session
 import sqlite3
 import smtplib
 from email.message import EmailMessage
 
 app = Flask(__name__)
+app.secret_key = 'una_chiave_segreta_molto_difficile' # Indispensabile per le sessioni
+
+# Funzione per verificare il login
+def check_user(username, password):
+    conn = sqlite3.connect('emails.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = check_user(username, password)
+        if user:
+            session['user'] = username # Salviamo l'utente nella sessione
+            return redirect(url_for('index'))
+        return "Login fallito!"
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('login'))
 
 def get_emails():
     conn = sqlite3.connect('emails.db')
@@ -41,8 +68,20 @@ def send_email():
 
 @app.route('/')
 def index():
-    lista_email = get_emails()
-    return render_template('index.html', emails=lista_email)
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    # Recuperiamo solo le mail destinate a questo utente
+    username = session['user']
+    conn = sqlite3.connect('emails.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    # Cerchiamo le mail dove il destinatario contiene lo username
+    cursor.execute('SELECT * FROM emails WHERE recipient LIKE ? ORDER BY timestamp DESC', (f'%{username}%',))
+    lista_email = cursor.fetchall()
+    conn.close()
+    
+    return render_template('index.html', emails=lista_email, user=username)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
