@@ -19,12 +19,13 @@ def init_db():
 
 # Tabella Utenti
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
-        )
-    ''')
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        email_address TEXT UNIQUE,  -- <--- Il vero indirizzo @dudumail.local
+        password TEXT
+    )
+''')
 
 
 def save_email(sender, recipient, subject, body):

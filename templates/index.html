@@ -1,78 +1,147 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <title>DuduMail | Dashboard</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; background: #f0f2f5; }
-        
-        /* Sidebar laterale */
-        .sidebar { width: 250px; background: #2c3e50; color: white; padding: 20px; }
-        .sidebar h2 { font-size: 1.5rem; margin-bottom: 30px; color: #ecf0f1; }
-        
-        /* Area principale */
-        .main-content { flex-grow: 1; overflow-y: auto; padding: 30px; }
-        
-        /* Card delle Email */
-        .email-item { 
-            background: white; 
-            border-left: 5px solid #3498db; 
-            padding: 20px; 
-            margin-bottom: 15px; 
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background: #f4f7f6;
+            display: flex;
         }
-        .email-header { display: flex; justify-content: space-between; margin-bottom: 10px; color: #7f8c8d; font-size: 0.9rem; }
-        .email-subject { font-size: 1.2rem; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-        .email-body { white-space: pre-wrap; color: #34495e; line-height: 1.5; }
-        
-        .no-emails { text-align: center; color: #95a5a6; margin-top: 50px; }
+
+        .sidebar {
+            width: 200px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            position: fixed;
+        }
+
+        .main {
+            margin-left: 240px;
+            padding: 30px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .email-list {
+            margin-top: 20px;
+        }
+
+        .email-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+
+        .email-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge-in {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .badge-out {
+            background: #2ecc71;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .user-info {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
     </style>
 </head>
+
 <body>
 
     <div class="sidebar">
-        <h2>DuduMail ✉️</h2>
-        <p><strong>Inbox</strong></p>
-        <p style="opacity: 0.5;">Inviati (Work in progress)</p>
+        <h2>DuduMail</h2>
+        <div class="user-info">👤 {{ my_email }}</div>
+        <a href="/logout" style="color: #e74c3c; text-decoration: none;">Esci</a>
     </div>
 
-    <div class="main-content">
-        <div class="send-form" style="background: white; padding: 20px; margin-bottom: 30px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h3>Nuovo Messaggio 📝</h3>
-    <form action="/send" method="post">
-        <div style="margin-bottom: 10px;">
-            <input type="email" name="to" placeholder="A: (es. gianluca@dudumail.local)" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+    <div class="main">
+        <div class="card">
+            <h3>Nuovo Messaggio ✉️</h3>
+            <form action="/send" method="post">
+                <input type="email" name="to" placeholder="A: (es. test@dudumail.local)" required>
+                <input type="text" name="subject" placeholder="Oggetto" required>
+                <textarea name="message" rows="3" placeholder="Scrivi qui..." required></textarea>
+                <button type="submit">Invia Mail</button>
+            </form>
         </div>
-        <div style="margin-bottom: 10px;">
-            <input type="text" name="subject" placeholder="Oggetto" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-        </div>
-        <div style="margin-bottom: 10px;">
-            <textarea name="message" placeholder="Scrivi qui il tuo messaggio..." rows="4" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
-        </div>
-        <button type="submit" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Invia Email</button>
-    </form>
-</div>
-<hr>
-        <h1>Posta in arrivo</h1>
-        
-        {% for email in emails %}
-        <div class="email-item">
-            <div class="email-header">
-                <span>Da: <strong>{{ email.sender }}</strong></span>
-                <span>{{ email.timestamp }}</span>
+
+        <div class="card">
+            <h3>📥 Inbox (Ricevute)</h3>
+            <div class="email-list">
+                {% for email in inbox %}
+                <div class="email-item">
+                    <span class="badge-in">DA: {{ email.sender }}</span>
+                    <strong>{{ email.subject }}</strong>
+                    <p style="color: #666; margin: 5px 0;">{{ email.body }}</p>
+                    <small style="color: #999;">{{ email.timestamp }}</small>
+                </div>
+                {% else %}
+                <p>Nessun messaggio ricevuto.</p>
+                {% endfor %}
             </div>
-            <div class="email-subject">{{ email.subject }}</div>
-            <div class="email-body">{{ email.body }}</div>
         </div>
-        {% else %}
-        <div class="no-emails">
-            <h3>L'inbox è vuota</h3>
-            <p>Usa lo script di test per inviare una mail!</p>
+
+        <div class="card">
+            <h3>📤 Sent (Inviate)</h3>
+            <div class="email-list">
+                {% for email in sent %}
+                <div class="email-item">
+                    <span class="badge-out">A: {{ email.recipient }}</span>
+                    <strong>{{ email.subject }}</strong>
+                    <p style="color: #666; margin: 5px 0;">{{ email.body }}</p>
+                    <small style="color: #999;">{{ email.timestamp }}</small>
+                </div>
+                {% else %}
+                <p>Non hai ancora inviato messaggi.</p>
+                {% endfor %}
+            </div>
         </div>
-        {% endfor %}
     </div>
 
 </body>
+
 </html>
