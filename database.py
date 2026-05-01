@@ -16,8 +16,16 @@ def init_db():
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    conn.commit()
-    conn.close()
+
+# Tabella Utenti
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
+    ''')
+
 
 def save_email(sender, recipient, subject, body):
     conn = sqlite3.connect('emails.db')
@@ -26,8 +34,10 @@ def save_email(sender, recipient, subject, body):
         INSERT INTO emails (sender, recipient, subject, body)
         VALUES (?, ?, ?, ?)
     ''', (sender, recipient, subject, body))
+
     conn.commit()
     conn.close()
+
 
 if __name__ == '__main__':
     init_db()
