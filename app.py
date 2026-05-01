@@ -1,30 +1,58 @@
-from flask import Flask, render_template, request, redirect, url_for, session # aggiungi session
+from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import smtplib
 from email.message import EmailMessage
+# IMPORT PER LA SICUREZZA
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = 'una_chiave_segreta_molto_difficile' # Indispensabile per le sessioni
+app.secret_key = 'una_chiave_segreta_molto_difficile'
 
-# Funzione per verificare il login
+# --- NUOVA ROTTA REGISTRAZIONE ---
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # CRITTOGRAFIA: Trasformiamo la password in un Hash
+        hashed_password = generate_password_hash(password)
+        
+        try:
+            conn = sqlite3.connect('emails.db')
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            return "Errore: Lo username esiste già!"
+            
+    return render_template('register.html')
+
+# --- AGGIORNA LA FUNZIONE DI LOGIN ---
 def check_user(username, password):
     conn = sqlite3.connect('emails.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', (username, password))
-    user = cursor.fetchone()
+    cursor.execute('SELECT password FROM users WHERE username = ?', (username,))
+    result = cursor.fetchone()
     conn.close()
-    return user
+    
+    if result:
+        # CONFRONTO: Verifichiamo se la password inserita corrisponde all'Hash nel DB
+        if check_password_hash(result[0], password):
+            return True
+    return False
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = check_user(username, password)
-        if user:
-            session['user'] = username # Salviamo l'utente nella sessione
+        if check_user(username, password):
+            session['user'] = username
             return redirect(url_for('index'))
-        return "Login fallito!"
+        return "Login fallito: Username o Password errati!"
     return render_template('login.html')
 
 @app.route('/logout')
