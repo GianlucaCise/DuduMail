@@ -1,16 +1,33 @@
 import asyncio
 from aiosmtpd.controller import Controller
-
+from database import save_email
+from email import message_from_bytes
 class MyHandler:
     async def handle_DATA(self, server, session, envelope):
-        print(f"Messaggio ricevuto da: {envelope.mail_from}")
-        print(f"Inviato a: {envelope.rcpt_tos}")
-        # Decodifichiamo il contenuto del messaggio
-        content = envelope.content.decode('utf8', errors='replace')
-        print(f"Contenuto:\n{content}")
-        print("-" * 20)
-        return '250 Message accepted for delivery'
+        # Trasformiamo il contenuto grezzo in un oggetto "EmailMessage"
+        msg = message_from_bytes(envelope.content)
+        
+        sender = envelope.mail_from
+        recipient = ", ".join(envelope.rcpt_tos)
+        
+        # Estraiamo l'oggetto in modo sicuro
+        subject = msg.get('subject', 'Nessun Oggetto')
+        
+        # Estraiamo il corpo del messaggio
+        body = ""
+        if msg.is_multipart():
+            for part in msg.walk():
+                if part.get_content_type() == "text/plain":
+                    body = part.get_payload(decode=True).decode('utf-8', errors='replace')
+                    break
+        else:
+            body = msg.get_payload(decode=True).decode('utf-8', errors='replace')
 
+        print(f"Archiviando mail: {subject}")
+        save_email(sender, recipient, subject, body)
+        
+        return '250 Message accepted for delivery'
+    
 async def main():
     handler = MyHandler()
     # Usiamo 127.0.0.1 per indicare che il server è locale
