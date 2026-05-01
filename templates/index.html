@@ -39,6 +39,22 @@
     </div>
 
     <div class="main-content">
+        <div class="send-form" style="background: white; padding: 20px; margin-bottom: 30px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3>Nuovo Messaggio 📝</h3>
+    <form action="/send" method="post">
+        <div style="margin-bottom: 10px;">
+            <input type="email" name="to" placeholder="A: (es. gianluca@dudumail.local)" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <input type="text" name="subject" placeholder="Oggetto" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        </div>
+        <div style="margin-bottom: 10px;">
+            <textarea name="message" placeholder="Scrivi qui il tuo messaggio..." rows="4" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></textarea>
+        </div>
+        <button type="submit" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Invia Email</button>
+    </form>
+</div>
+<hr>
         <h1>Posta in arrivo</h1>
         
         {% for email in emails %}
